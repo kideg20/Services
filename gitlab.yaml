@@ -1,0 +1,95 @@
+version: "3.6"
+services:
+   gitlab:
+     #image: gitlab/gitlab-ce:13.11.3-ce.0
+     #image: gitlab/gitlab-ce:13.12.8-ce.0
+     #image: gitlab/gitlab-ce:14.0.6-ce.0
+     #image: gitlab/gitlab-ce:14.1.2-ce.0
+     #image: gitlab/gitlab-ce:14.3.3-ce.0
+     image: gitlab/gitlab-ce:14.2.7-ce.0
+     hostname: gitlab.del.lv
+     ports:
+       - "22:22"
+#       - "80:80"
+       - "3343:3343"
+     volumes:
+       - ./data/gitlab_data:/var/opt/gitlab
+       - ./data/gitlab_logs:/var/log/gitlab
+       - ./data/gitlab_conf:/etc/gitlab
+       - /opt/backups/backups:/backups
+     environment:
+       GITLAB_OMNIBUS_CONFIG: "from_file('/omnibus_config.rb')"
+     deploy:
+      resources:
+        limits:
+          cpus: '3.0'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+#      placement:
+#        constraints: [node.labels.prod == active ]
+     configs:
+       - source: gitlab
+         target: /omnibus_config.rb
+     secrets:
+       - gitlab_root_password
+       - source: gitlab_crt
+         target: /etc/gitlab/ssl/gitlab.del.lv.crt
+       - source: gitlab_key
+         target: /etc/gitlab/ssl/gitlab.del.lv.key
+       - source: reg_gitlab_crt
+         target: /etc/gitlab/ssl/reg-gitlab.del.lv.crt
+       - source: reg_gitlab_key
+         target: /etc/gitlab/ssl/reg-gitlab.del.lv.key
+       - source: ssh_gitlab_crt
+         target: /etc/gitlab/ssl/ssh-gitlab.del.lv.crt
+       - source: ssh_gitlab_key
+         target: /etc/gitlab/ssl/ssh-gitlab.del.lv.key
+       - source: pages_gitlab_crt
+         target: /etc/gitlab/ssl/pages-gitlab.del.lv.crt
+       - source: pages_gitlab_key
+         target: /etc/gitlab/ssl/pages-gitlab.del.lv.key
+       - source: root_ca
+         target: /opt/gitlab/embedded/ssl/certs/root-ca.crt
+
+     logging:
+        options:
+          max-size: "100MB"
+          max-file: "3"
+#   gitlab-runner:
+#     image: gitlab/gitlab-runner:alpine
+#     deploy:
+#       mode: replicated
+#       replicas: 1
+configs:
+   gitlab:
+     file: ./gitlab.rb
+secrets:
+   root_ca:
+     file: ./root_ca.crt
+   gitlab_root_password:
+     file: ./root_password.txt
+   gitlab_crt:
+     file: ./gitlab.del.lv.crt
+   gitlab_key:
+     file: ./gitlab.del.lv.key
+   reg_gitlab_crt:
+     file: ./reg-gitlab.del.lv.crt
+   reg_gitlab_key:
+     file: ./reg-gitlab.del.lv.key
+   ssh_gitlab_crt:
+     file: ./ssh-gitlab.del.lv.crt
+   ssh_gitlab_key:
+     file: ./ssh-gitlab.del.lv.key
+   pages_gitlab_key:
+     file: ./pages-gitlab.del.lv.key
+   pages_gitlab_crt:
+     file: ./pages-gitlab.del.lv.crt
+#volumes:
+#  gitlab_data:
+#     driver: convoy
+#  gitlab_logs:
+#     driver: convoy
+#  gitlab_conf:
+#     driver: convoy
